@@ -1,0 +1,44 @@
+name: Android installable preview
+on:
+  push:
+    branches: [feat/mvp-foundation]
+    paths: ['android/**', 'backend/**', '.github/workflows/android-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.1'
+      - name: Backend tests
+        run: npm test
+        working-directory: backend
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build and lint Android
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+        working-directory: android
+      - name: Prepare installable preview
+        run: |
+          mkdir -p artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/bulgar-vpn-preview-debug.apk
+          cd artifacts
+          sha256sum bulgar-vpn-preview-debug.apk > SHA256SUMS.txt
+          printf 'UI preview only. VPN tunnel and mobile account integration are not implemented. Not for production distribution.\n' > README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bulgar-vpn-android-preview
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
