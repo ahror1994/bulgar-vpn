@@ -1,0 +1,16 @@
+node_modules/
+.env
+*.db
+*.db-*
+*.sqlite*
+.DS_Store
+.gradle/
+**/build/
+local.properties
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
